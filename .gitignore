@@ -1,0 +1,5 @@
+/.idea/
+config.json
+server.wsgi
+*.pth
+__pycache__/

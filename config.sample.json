@@ -1,0 +1,8 @@
+{
+  "checkpoint": "checkpoint.pth",
+  "preset": "deepvoice3_pytorch/presets/eesti_konekorpus.json",
+  "trim_threshold": 5,
+  "host": "0.0.0.0",
+  "port": 80,
+  "allowed_speakers": [0,1,2,3,4,5]
+}

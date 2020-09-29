@@ -1,0 +1,3 @@
+[submodule "deepvoice3_pytorch"]
+	path = deepvoice3_pytorch
+	url = https://github.com/TartuNLP/deepvoice3_pytorch
