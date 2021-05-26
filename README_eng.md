@@ -22,7 +22,7 @@ BODY (JSON):
 Upon such request, the server will return a binary stream of the synthesized audio in .wav format. The `speaker_id
 ` parameter is optional and by default, the first speaker is selected.
 
-The [model](https://github.com/TartuNLP/deepvoice3_pytorch/releases/tag/kratt-v1.0) we reference to in this version
+The [model](https://github.com/TartuNLP/deepvoice3_pytorch/releases/download/kratt-v1.2) we reference to in this version
  supports six different speakers.
 
 ## Requirements and installation
@@ -45,7 +45,7 @@ conda activate deepvoice
 pip install --no-deps -e "deepvoice3_pytorch/[bin]"
 python -c 'import nltk; nltk.download("punkt"); nltk.download("cmudict")'
 ```
-- Download our [Deep Voice 3 model](https://github.com/TartuNLP/deepvoice3_pytorch/releases/download/kratt-v1.0/checkpoint.pth)
+- Download our [Deep Voice 3 model](https://github.com/TartuNLP/deepvoice3_pytorch/releases/download/kratt-v1.2/autosegment.pth)
 
 - Create a configuration file and change any defaults as needed. Make sure that the `checkpoint` parameter points to
  the model file you just downloaded.

@@ -22,7 +22,7 @@ BODY (JSON):
 ```
 Server tagastab binaarsel kujul .wav formaadis helifaili. Parameeter `speaker_id` ei ole kohtustuslik ning vaikimisi kasutatakse esimest häält.
 
-Käesolevas versioonis viidatud [mudel](https://github.com/TartuNLP/deepvoice3_pytorch/releases/tag/kratt-v1.0) toetab
+Käesolevas versioonis viidatud [mudel](https://github.com/TartuNLP/deepvoice3_pytorch/releases/tag/kratt-v1.2) toetab
  kuut erinevat häält.
 
 ## Nõuded ja seadistamine
@@ -45,7 +45,7 @@ conda activate deepvoice
 pip install --no-deps -e "deepvoice3_pytorch/[bin]"
 python -c 'import nltk; nltk.download("punkt"); nltk.download("cmudict")'
 ```
-- Lae alla meie [Deep Voice 3 mudel](https://github.com/TartuNLP/deepvoice3_pytorch/releases/download/kratt-v1.0/checkpoint.pth)
+- Lae alla meie [Deep Voice 3 mudel](https://github.com/TartuNLP/deepvoice3_pytorch/releases/download/kratt-v1.2/autosegment.pth)
 
 - Loo konfiguratsiooni fail. Kontrolli, et parameeter `checkpoint` viitaks eelmises punktis alla laetud
  mudeli failile.
