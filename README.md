@@ -5,8 +5,9 @@ Siit repositooriumist leiab lihtsa API, mis võimaldab käivitada eestikeelse mi
  - [eesti keelele kohandatud Deep Voice 3](https://github.com/TartuNLP/deepvoice3_pytorch)
  - [eestikeelse kõnesünteesi eeltöötlus](https://github.com/TartuNLP/tts_preprocess_et)
  
-Kõnesüntees on loodud koostöös [Eesti Keele Instituudiga](http://portaal.eki.ee/) ja seda on võimalik
- kasutada ka meie [veebidemos](https://www.neurokone.ee).
+Kõnesüntees on loodud koostöös [Eesti Keele Instituudiga](http://portaal.eki.ee/)
+
+Kõnesünteesi uusimat versiooni on võimalik kasutada meie [veebidemos](https://www.neurokone.ee) ning see repositoorium viiakse uuemale versioonile üle 2021 sügisel.
  
 ## Kasutamine
 API kasutamiseks tuleb veebiserverile saata järgmises formaadis POST päring, kus parameeter `text` viitab sünteesitavale tekstile ja `speaker_id` soovitud häälele.

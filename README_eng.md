@@ -4,8 +4,9 @@ A simple Flask API for Estonian multispeaker speech synthesis. This repository c
 - [Deep Voice 3 adaptation for Estonian](https://github.com/TartuNLP/deepvoice3_pytorch)
 - [Estonian text-to-speech preprocessing scripts](https://github.com/TartuNLP/tts_preprocess_et)
 
-Speech synthesis was developed in collaboration with the [Estonian Language Institute](http://portaal.eki.ee/) and
- can also be used via our [web demo](https://www.neurokone.ee).
+Speech synthesis was developed in collaboration with the [Estonian Language Institute](http://portaal.eki.ee/).
+
+A newer version of Estonian text-to-speech can be used via our [web demo](https://www.neurokone.ee). This repository will be updated to run the latest version in Fall 2021.
  
 ## API usage
 To use the API, use the following POST request format.
