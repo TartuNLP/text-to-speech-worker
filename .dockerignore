@@ -5,3 +5,4 @@ config/*.env
 .gitignore
 .github
 /logs/*
+*.iml
