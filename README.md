@@ -8,7 +8,7 @@ Speech synthesis can also be tested in our [web demo](https://www.neurokone.ee/)
 
 ## Models
 
-[The releases section](https://github.com/TartuNLP/text-to-speech/releases) contains the model files or their download
+[The releases section](https://github.com/TartuNLP/text-to-speech-worker/releases) contains the model files or their download
 instructions. If a release does not specify the model information, the model from the previous release can be used. We
 advise always using the latest available version to ensure best model quality and code compatibility.
 
