@@ -48,7 +48,6 @@ services:
   tts_worker_deepvoice:
     image: ghcr.io/tartunlp/text-to-speech-worker:latest
     environment:
-      - MODEL_NAME=deepvoice
       - MQ_HOST=rabbitmq
       - MQ_PORT=5672
       - MQ_USERNAME=${RABBITMQ_USER}
