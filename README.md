@@ -1,4 +1,4 @@
-# Eestikeelne kõnesüntees kõnesünteesi API
+# Eestikeelne kõnesüntees
 
 Skriptid eestikeelse mitmehäälse kõnesünteesi kasutamiseks teksifaili põhjal. Kood sisaldab alammooduleid, mis viitavad järgmistele kõnesünteesi komponentidele:
  - [eesti keelele kohandatud Deep Voice 3](https://github.com/TartuNLP/deepvoice3_pytorch)
