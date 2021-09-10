@@ -1,0 +1,7 @@
+service: tts
+routing_key: deepvoice
+parameters:
+  preset: deepvoice3_pytorch/presets/eesti_konekorpus.json
+  checkpoint: models/checkpoint.pth
+  allowed_speakers: [ 0, 1, 2, 3, 4, 5 ]
+  trim_threshold: 5

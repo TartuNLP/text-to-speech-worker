@@ -1,61 +1,92 @@
-# Eestikeelse kõnesünteesi API
+# Estonian Text-to-Speech
 
-Siit repositooriumist leiab lihtsa API, mis võimaldab käivitada eestikeelse mitmehäälse kõnesünteesi
- serverit. Kood sisaldab alammooduleid, mis viitavad järgmistele kõnesünteesi komponentidele:
- - [eesti keelele kohandatud Deep Voice 3](https://github.com/TartuNLP/deepvoice3_pytorch)
- - [eestikeelse kõnesünteesi eeltöötlus](https://github.com/TartuNLP/tts_preprocess_et)
- 
-Kõnesüntees on loodud koostöös [Eesti Keele Instituudiga](http://portaal.eki.ee/)
+This repository contains Estonian multi-speaker neural text-to-speech synthesis workers that process requests from 
+RabbitMQ.
 
-Kõnesünteesi uusimat versiooni on võimalik kasutada meie [veebidemos](https://www.neurokone.ee) ning see repositoorium viiakse uuemale versioonile üle 2021 sügisel.
- 
-## Kasutamine
-API kasutamiseks tuleb veebiserverile saata järgmises formaadis POST päring, kus parameeter `text` viitab sünteesitavale tekstile ja `speaker_id` soovitud häälele.
+The project is developed by the [NLP research group](https://tartunlp.ai) at the [Universty of Tartu](https://ut.ee).
+Speech synthesis can also be tested in our [web demo](https://www.neurokone.ee/).
 
-POST `/api/v1.0/synthesize`
+## Models
 
-BODY (JSON):
+[The releases section](https://github.com/TartuNLP/text-to-speech/releases) contains the model files or their download
+instructions. If a release does not specify the model information, the model from the previous release can be used. We
+advise always using the latest available version to ensure best model quality and code compatibility.
+
+## Setup
+
+The TTS worker can be deployed using the docker image published alongside the repository. Each image version correlates 
+to a specific release. The required model file(s) are excluded from the image to reduce the image size and should be
+downloaded from the releases section and their directory should be attached to the volume `/app/models`.
+
+Logs are stored in `/app/logs/` and logging configuration is loaded from `/app/config/logging.ini`. Service 
+configuration from `/app/config/config.yaml` files.
+
+The RabbitMQ connection parameters are set with environment variables, exchange and queue names are dependent on the 
+`service` and `routing_key` values in `config.yaml`. The setup can be tested with the following sample
+`docker-compose.yml` configuration.
+
 ```
-{
-    "text": "Tere."
-    "speaker_id": 0
-}
+version: '3'
+services:
+  rabbitmq:
+    image: 'rabbitmq:3.6-alpine'
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS}
+  tts_api:
+    image: ghcr.io/tartunlp/text-to-speech-api:latest
+    environment:
+      - MQ_HOST=rabbitmq
+      - MQ_PORT=5672
+      - MQ_USERNAME=${RABBITMQ_USER}
+      - MQ_PASSWORD=${RABBITMQ_PASS}
+      - GUNICORN_WORKERS=8
+    ports:
+      - '5000:5000'
+    depends_on:
+      - rabbitmq
+  tts_worker_deepvoice:
+    image: ghcr.io/tartunlp/text-to-speech-worker:latest
+    environment:
+      - MODEL_NAME=deepvoice
+      - MQ_HOST=rabbitmq
+      - MQ_PORT=5672
+      - MQ_USERNAME=${RABBITMQ_USER}
+      - MQ_PASSWORD=${RABBITMQ_PASS}
+    volumes:
+      - ./models:/app/models
+    depends_on:
+      - rabbitmq
 ```
-Server tagastab binaarsel kujul .wav formaadis helifaili. Parameeter `speaker_id` ei ole kohtustuslik ning vaikimisi kasutatakse esimest häält.
 
-Käesolevas versioonis viidatud [mudel](https://github.com/TartuNLP/deepvoice3_pytorch/releases/tag/kratt-v1.2) toetab
- kuut erinevat häält.
+### Manual setup
 
-## Nõuded ja seadistamine
+The following steps have been tested on Ubuntu. The code is both CPU and GPU compatible (CUDA required).
 
-Siinseid instruktsioone on testitud Ubuntu 18.04-ga. Kood on nii CPU- kui GPU-sõbralik.
+- Make sure you have the following prerequisites installed:
+    - Conda (see https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html)
+    - GNU Compiler Collection (`sudo apt install build-essential`)
 
-- Veendu, et järgmised komponendid on installitud:
-    - Conda (loe lähemalt: https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html)
-    - GNU Compiler Collection (jooksuta: `sudo apt install build-essential`)
+- Clone this repository with submodules
+- Create and activate a Conda environment with all dependencies:
 
-- Klooni see repositoorium koos alammoodulitega:
 ```
-git clone --recurse-submodules https://koodivaramu.eesti.ee/tartunlp/text-to-speech
-```
-- Loo ja aktiveeri Conda keskond:
-```
-cd text-to-speech
-conda env create -f environment.yml
-conda activate deepvoice
+conda env create -f environments/environment.yml -n tts
+conda activate tts
 pip install --no-deps -e "deepvoice3_pytorch/[bin]"
 python -c 'import nltk; nltk.download("punkt"); nltk.download("cmudict")'
 ```
-- Lae alla meie [Deep Voice 3 mudel](https://github.com/TartuNLP/deepvoice3_pytorch/releases/download/kratt-v1.2/autosegment.pth)
 
-- Loo konfiguratsiooni fail. Kontrolli, et parameeter `checkpoint` viitaks eelmises punktis alla laetud
- mudeli failile.
-```
-cp config.sample.json config.json
-```
+- Download the model from the [releases section](https://github.com/TartuNLP/text-to-speech-worker/releases) and 
+  place it inside the `models/` directory.
 
-Seadista veebiserveri, mis jooksutaks `tts_server.py` faili või testi API kasutust nii:
+- Check the configuration files and change any defaults as needed. Make sure that the `checkpoint` parameter in
+  `config/config.yaml` points to the model file you just downloaded. By default, logs will be stored in the 
+  `logs/` directory which is specified in the `config/logging.ini` file.
+- Specify RabbitMQ connection parameters with environment variables or in a `config/.env` file as illustrated in the 
+  `config/sample.env`.
+
+Run the worker with:
 ```
-export FLASK_APP=tts_server.py
-flask run
+python tts_worker.py --log-config config/logging.ini --worker-config config/config.yaml
 ```

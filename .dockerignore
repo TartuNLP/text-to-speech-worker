@@ -1,0 +1,7 @@
+/models
+config/*.env
+.idea/
+.git/
+.gitignore
+.github
+/logs/*
