@@ -1,5 +1,5 @@
 /.idea/
-*.pth
 __pycache__/
 config/.env
 *.iml
+deepvoice3_pytorch/

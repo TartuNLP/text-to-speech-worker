@@ -1,21 +1,14 @@
-FROM continuumio/miniconda3
-RUN apt-get update && apt-get install -y build-essential
+FROM tensorflow/tensorflow:2.6.0
+
+COPY environments/requirements.txt .
+RUN pip install -r requirements.txt && rm requirements.txt
+RUN python -c "import nltk; nltk.download(\"punkt\"); nltk.download(\"cmudict\")";
 
 WORKDIR /app
-
-COPY environments/environment.yml ./environment.yml
-RUN conda env create -f environment.yml -n tts; rm environment.yml
-
-COPY deepvoice3_pytorch ./deepvoice3_pytorch
-
-SHELL ["conda", "run", "-n", "tts", "/bin/bash", "-c"]
-RUN pip install --no-deps -e "deepvoice3_pytorch/[bin]" && \
-    python -c "import nltk; nltk.download(\"punkt\"); nltk.download(\"cmudict\")";
-SHELL ["/bin/bash", "-c"]
-
 VOLUME /app/models
 COPY . .
 
-RUN echo "python tts_worker.py --log-config config/logging.ini --worker-config config/config.yaml"  > entrypoint.sh
+ENV MODEL_NAME=""
+RUN echo "python tts_worker.py --model \$MODEL_NAME" > entrypoint.sh
 
-ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "tts", "bash", "entrypoint.sh"]
+ENTRYPOINT ["bash", "entrypoint.sh"]

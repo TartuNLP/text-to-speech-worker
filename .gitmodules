@@ -1,3 +1,6 @@
-[submodule "deepvoice3_pytorch"]
-	path = deepvoice3_pytorch
-	url = https://github.com/TartuNLP/deepvoice3_pytorch
+[submodule "TransformerTTS"]
+	path = TransformerTTS
+	url = git@github.com:TartuNLP/TransformerTTS.git
+[submodule "tts_preprocess_et"]
+	path = tts_preprocess_et
+	url = git@github.com:TartuNLP/tts_preprocess_et.git

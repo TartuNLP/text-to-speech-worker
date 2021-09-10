@@ -1,7 +1,55 @@
+### Transformer-TTS requried configuration
+wav_directory: ''
+metadata_path: ''
+log_directory: ''
+train_data_directory: ''
+data_config: 'TransformerTTS/config/data_config_est.yaml'
+aligner_config: 'TransformerTTS/config/aligner_config.yaml'
+tts_config: 'TransformerTTS/config/tts_config_est.yaml'
+data_name: ''
+
 service: tts
-routing_key: deepvoice
-parameters:
-  preset: deepvoice3_pytorch/presets/eesti_konekorpus.json
-  checkpoint: models/checkpoint.pth
-  allowed_speakers: [ 0, 1, 2, 3, 4, 5 ]
-  trim_threshold: 5
+models:
+  albert:
+    parameters:
+      config_path: config/config.yaml
+      checkpoint_path: models/tts/albert
+      vocoder_path: models/hifigan/vctk
+    routes:
+      - albert
+  kalev:
+    parameters:
+      config_path: config/config.yaml
+      checkpoint_path: models/tts/kalev
+      vocoder_path: models/hifigan/vctk
+    routes:
+      - kalev
+  kylli:
+    parameters:
+      config_path: config/config.yaml
+      checkpoint_path: models/tts/kylli
+      vocoder_path: models/hifigan/ljspeech
+    routes:
+      - külli
+      - kylli
+  mari:
+    parameters:
+      config_path: config/config.yaml
+      checkpoint_path: models/tts/mari
+      vocoder_path: models/hifigan/ljspeech
+    routes:
+      - mari
+  meelis:
+    parameters:
+      config_path: config/config.yaml
+      checkpoint_path: models/tts/meelis
+      vocoder_path: models/hifigan/vctk
+    routes:
+      - meelis
+  vesta:
+    parameters:
+      config_path: config/config.yaml
+      checkpoint_path: models/tts/vesta
+      vocoder_path: models/hifigan/vctk
+    routes:
+      - vesta

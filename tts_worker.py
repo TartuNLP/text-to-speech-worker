@@ -1,133 +1,121 @@
 import os
+import sys
 import io
 import logging
 import re
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional
 
 import numpy as np
-import torch
+from scipy.io import wavfile
 from nltk import sent_tokenize
-from marshmallow import Schema, fields, validate, ValidationError
+from marshmallow import Schema, fields, ValidationError
 from nauron import Worker, Response
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-import train
-import audio
-from train import build_model
-from hparams import hparams, hparams_debug_string
-from deepvoice3_pytorch import frontend
+import tensorflow as tf
 
 import settings
 
+sys.path.append(f'{os.path.dirname(os.path.realpath(__file__))}/TransformerTTS')
+from TransformerTTS.utils.config_manager import Config
+from vocoding.predictors import HiFiGANPredictor
+from tts_preprocess_et.convert import convert_sentence
+
 logger = logging.getLogger('tts')
+
+# Tensorflow tries to allocate all memory on a GPU unless explicitly told otherwise.
+# Does not affect allocation by Pytorch vocoders.
+# TODO TF VRAM limit does not illustrate actual VRAM usage
+try:
+    for gpu in tf.config.list_physical_devices('GPU'):
+        if settings.TF_VRAM_LIMIT:  # Memory limit for speech models
+            tf.config.experimental.set_virtual_device_configuration(gpu, [
+                tf.config.experimental.VirtualDeviceConfiguration(memory_limit=int(settings.TF_VRAM_LIMIT))])
+        else:  # Allocating on-the-go
+            logger.warning("No VRAM usage limit for Tensorflow set.")
+            tf.config.experimental.set_memory_growth(gpu, True)
+except RuntimeError as e:
+    logger.error(e)
 
 
 class TTSWorker(Worker):
-    def __init__(self, preset: str, checkpoint: str, allowed_speakers: List[int], trim_threshold: int = 5):
+    def __init__(self, config_path: str, checkpoint_path: str, vocoder_path: str):
         class TTSSchema(Schema):
             text = fields.Str(required=True)
-            speaker_id = fields.Int(missing=allowed_speakers[0],
-                                    validate=validate.OneOf(allowed_speakers))
+            speaker = fields.Str()
+            speed = fields.Float(missing=1, validate=lambda s: 0.5 <= s <= 2)
+            application = fields.Str(allow_none=True, missing=None)
 
+        self.silence = np.zeros(10000, dtype=np.int16)
         self.schema = TTSSchema
 
-        with open(preset) as f:
-            hparams.parse_json(f.read())
-        logger.debug(hparams_debug_string())
+        self.config = Config(config_path=config_path)
+        self.model = self.config.load_model(checkpoint_path=checkpoint_path)
+        self.vocoder = HiFiGANPredictor.from_folder(vocoder_path)
 
-        self.trim_threshold = trim_threshold
-
-        self._frontend = None
-        self.use_cuda = torch.cuda.is_available()
-        self.device = torch.device("cuda" if self.use_cuda else "cpu")
-        self.model = None
-        self.silence = np.zeros(10000)
-
-        # Presets
-        with open(preset) as f:
-            hparams.parse_json(f.read())
-
-        self._frontend = getattr(frontend, hparams.frontend)
-        train._frontend = self._frontend
-
-        self.model = build_model()
-
-        # Load checkpoints separately
-        if self.use_cuda:
-            checkpoint = torch.load(checkpoint)
-        else:
-            checkpoint = torch.load(checkpoint, map_location=torch.device('cpu'))
-        self.model.load_state_dict(checkpoint["state_dict"])
-
-        self.model.seq2seq.decoder.max_decoder_steps = hparams.max_positions - 2
-
-        self.model = self.model.to(self.device)
-        self.model.eval()
-        self.model.make_generation_fast_()
-
-        logger.info("Deepvoice3 initialized.")
+        logger.info("Transformer-TTS initialized.")
 
     def process_request(self, body: Dict[str, Any], _: Optional[str] = None) -> Response:
         try:
             body = self.schema().load(body)
             logger.info(f"Request received: {{"
-                        f"speaker: {body['speaker_id']}, "
-                        f"text: \"{body['text']}\""
-                        f"}}")
+                        f"speaker: {body['speaker']}, "
+                        f"speed: {body['speed']}}}")
+            return Response(content=self._synthesize(body['text'], body['speed']), mimetype='audio/wav')
         except ValidationError as error:
             return Response(content=error.messages, http_status_code=400)
-
-        try:
-            return Response(content=self._synthesize(body['text'], body['speaker_id']), mimetype='audio/wav')
-        except ValueError:
+        except tf.errors.ResourceExhaustedError:
             return Response(content="Input contains sentences that are too long.", http_status_code=413)
 
-    def _synthesize(self, text: str, speaker_id: int) -> bytes:
-        """Convert text to speech waveform given a deepvoice3 model.
+    def _synthesize(self, text: str, speed: float = 1) -> bytes:
+        """Convert text to speech waveform.
         Args:
           text (str) : Input text to be synthesized
-          speaker_id (int)
+          speed (float)
         """
+
+        def clean(sent):
+            sent = re.sub(r'[`´’\']', r'', sent)
+            sent = re.sub(r'[()]', r', ', sent)
+            try:
+                sent = convert_sentence(sent)
+            except Exception as ex:
+                logger.error(str(ex), sent)
+            sent = re.sub(r'[()[\]:;−­–…—]', r', ', sent)
+            sent = re.sub(r'[«»“„”]', r'"', sent)
+            sent = re.sub(r'[*\'\\/-]', r' ', sent)
+            sent = re.sub(r'[`´’\']', r'', sent)
+            sent = re.sub(r' +([.,!?])', r'\g<1>', sent)
+            sent = re.sub(r', ?([.,?!])', r'\g<1>', sent)
+            sent = re.sub(r'\.+', r'.', sent)
+
+            sent = re.sub(r' +', r' ', sent)
+            sent = re.sub(r'^ | $', r'', sent)
+            sent = re.sub(r'^, ?', r'', sent)
+            sent = sent.lower()
+            sent = re.sub(re.compile(r'\s+'), ' ', sent)
+            return sent
+
         waveforms = []
 
         # The quotation marks need to be unified, otherwise sentence tokenization won't work
         text = re.sub(r'[«»“„]', r'"', text)
 
         for i, sentence in enumerate(sent_tokenize(text, 'estonian')):
-            sequence = np.array(self._frontend.text_to_sequence(sentence))
-            sequence = torch.from_numpy(sequence).unsqueeze(0).long().to(self.device)
-            text_positions = torch.arange(1, sequence.size(-1) + 1).unsqueeze(0).long().to(self.device)
-            speaker_ids = None if speaker_id is None else torch.LongTensor([speaker_id]).to(self.device)
-
-            if text_positions.size()[1] >= hparams.max_positions:
-                raise ValueError("Input contains sentences that are too long.")
-
-            # Greedy decoding
-            with torch.no_grad():
-                mel_outputs, linear_outputs, alignments, done = self.model(
-                    sequence, text_positions=text_positions, speaker_ids=speaker_ids)
-
-            linear_output = linear_outputs[0].cpu().data.numpy()
-            alignment = alignments[0].cpu().data.numpy()
-
-            # Predicted audio signal
-            waveform = audio.inv_spectrogram(linear_output.T)
-
-            # Cutting predicted signal to remove stuttering from the end of synthesized audio
-            last_row = np.transpose(alignment)[-1]
-            repetitions = np.where(last_row > 0)[0]
-            if repetitions.size > self.trim_threshold:
-                end = repetitions[self.trim_threshold]
-                end = int(end * len(waveform) / last_row.size)
-                waveform = waveform[:end]
+            logger.info(f"Original sentence {i}: {sentence}")
+            sentence = clean(sentence)
+            logger.info(f"Cleaned sentence {i}: {sentence}")
+            out = self.model.predict(sentence, speed_regulator=speed)
+            waveform = self.vocoder([out['mel'].numpy().T])
             if i != 0:
                 waveforms.append(self.silence)
-            waveforms.append(waveform)
+            waveforms.append(waveform[0])
 
         waveform = np.concatenate(waveforms)
 
         out = io.BytesIO()
-        audio.save_wav(waveform, out)
+        wavfile.write(out, 22050, waveform.astype(np.int16))
+
         return out.read()
 
 

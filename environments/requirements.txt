@@ -1,0 +1,18 @@
+# tensorflow>=2.2.0
+matplotlib==3.2.2
+librosa==0.7.1
+numpy>=1.17.4
+ruamel.yaml>=0.16.6
+pysoundfile
+scipy
+nltk
+estnltk==1.6.7b0
+python-dotenv==0.15.0
+marshmallow==3.10.0
+torch==1.4.0
+torchvision==0.5.0
+pyyaml>=5.4.1
+nauron~=1.2.2
+webrtcvad
+pyworld
+phonemizer~=2.2.1

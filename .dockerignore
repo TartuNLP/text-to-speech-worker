@@ -6,3 +6,4 @@ config/*.env
 .github
 /logs/*
 *.iml
+deepvoice3_pytorch/
