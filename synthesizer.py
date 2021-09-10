@@ -1,8 +1,9 @@
 # coding: utf-8
-import io
 import re
 import numpy as np
 import torch
+from tqdm import tqdm
+
 from hparams import hparams
 from deepvoice3_pytorch import frontend
 from train import build_model
@@ -36,7 +37,6 @@ class Synthesizer:
             checkpoint = torch.load(checkpoint_path, map_location=torch.device('cpu'))
         self.model.load_state_dict(checkpoint["state_dict"])
 
-        # TODO handling longer inputs
         self.model.seq2seq.decoder.max_decoder_steps = hparams.max_positions-2
 
         self.model = self.model.to(self.device)
@@ -57,8 +57,9 @@ class Synthesizer:
 
         # The quotation marks need to be unified, otherwise sentence tokenization won't work
         text = re.sub(r'[«»“„]', r'"', text)
+        sentences = sent_tokenize(text, 'estonian')
 
-        for i, sentence in enumerate(sent_tokenize(text, 'estonian')):
+        for i, sentence in enumerate(tqdm(sentences, unit="sentence")):
             sequence = np.array(self._frontend.text_to_sequence(sentence))
             sequence = torch.from_numpy(sequence).unsqueeze(0).long().to(self.device)
             text_positions = torch.arange(1, sequence.size(-1) + 1).unsqueeze(0).long().to(self.device)
@@ -91,6 +92,4 @@ class Synthesizer:
 
         waveform = np.concatenate(waveforms)
 
-        out = io.BytesIO()
-        audio.save_wav(waveform, out)
-        return out
+        return waveform

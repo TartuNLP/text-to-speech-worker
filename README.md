@@ -1,34 +1,18 @@
-# Eestikeelse kõnesünteesi API
+# Eestikeelne kõnesüntees kõnesünteesi API
 
-Siit repositooriumist leiab lihtsa API, mis võimaldab käivitada eestikeelse mitmehäälse kõnesünteesi
- serverit. Kood sisaldab alammooduleid, mis viitavad järgmistele kõnesünteesi komponentidele:
+Skriptid eestikeelse mitmehäälse kõnesünteesi kasutamiseks teksifaili põhjal. Kood sisaldab alammooduleid, mis viitavad järgmistele kõnesünteesi komponentidele:
  - [eesti keelele kohandatud Deep Voice 3](https://github.com/TartuNLP/deepvoice3_pytorch)
  - [eestikeelse kõnesünteesi eeltöötlus](https://github.com/TartuNLP/tts_preprocess_et)
  
 Kõnesüntees on loodud koostöös [Eesti Keele Instituudiga](http://portaal.eki.ee/)
 
-Kõnesünteesi uusimat versiooni on võimalik kasutada meie [veebidemos](https://www.neurokone.ee) ning see repositoorium viiakse uuemale versioonile üle 2021 sügisel.
- 
-## Kasutamine
-API kasutamiseks tuleb veebiserverile saata järgmises formaadis POST päring, kus parameeter `text` viitab sünteesitavale tekstile ja `speaker_id` soovitud häälele.
-
-POST `/api/v1.0/synthesize`
-
-BODY (JSON):
-```
-{
-    "text": "Tere."
-    "speaker_id": 0
-}
-```
-Server tagastab binaarsel kujul .wav formaadis helifaili. Parameeter `speaker_id` ei ole kohtustuslik ning vaikimisi kasutatakse esimest häält.
-
-Käesolevas versioonis viidatud [mudel](https://github.com/TartuNLP/deepvoice3_pytorch/releases/tag/kratt-v1.2) toetab
- kuut erinevat häält.
+Kõnesünteesi on võimalik kasutada ka meie [veebidemos](https://www.neurokone.ee). Samade mudelite rakendusliidese 
+komponendid on kättesaadavad [siit](https://github.com/TartuNLP/text-to-speech-api)
+ja [siit](https://github.com/TartuNLP/text-to-speech-worker).
 
 ## Nõuded ja seadistamine
 
-Siinseid instruktsioone on testitud Ubuntu 18.04-ga. Kood on nii CPU- kui GPU-sõbralik.
+Siinseid instruktsioone on testitud Ubuntuga. Kood on nii CPU- kui GPU-sõbralik (vajab CUDA-t GPU kasutamiseks).
 
 - Veendu, et järgmised komponendid on installitud:
     - Conda (loe lähemalt: https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html)
@@ -46,16 +30,30 @@ conda activate deepvoice
 pip install --no-deps -e "deepvoice3_pytorch/[bin]"
 python -c 'import nltk; nltk.download("punkt"); nltk.download("cmudict")'
 ```
-- Lae alla meie [Deep Voice 3 mudel](https://github.com/TartuNLP/deepvoice3_pytorch/releases/download/kratt-v1.2/autosegment.pth)
+- Lae alla meie [Deep Voice 3 mudel](https://github.com/TartuNLP/deepvoice3_pytorch/releases/kratt-v1.2) ja aseta 
+  see `models/` kausta. Siin viidatud mudel toetab kuue kõneleja häält.
 
-- Loo konfiguratsiooni fail. Kontrolli, et parameeter `checkpoint` viitaks eelmises punktis alla laetud
- mudeli failile.
+## Kasutamine
+
+Tekstifaili saab sünteesida järgmise käsuga. Hetkel oskab skript lugeda vaid toorteksti kujul faile ja salvestab 
+väljundi `.wav` formaadis.
+
 ```
-cp config.sample.json config.json
+python file_synthesis.py test.txt test.wav
 ```
 
-Seadista veebiserveri, mis jooksutaks `tts_server.py` faili või testi API kasutust nii:
+Lisainfot skripti kasutamise kohta saab `--help` parameetriga:
+
 ```
-export FLASK_APP=tts_server.py
-flask run
+file_synthesis.py [-h] [--checkpoint CHECKPOINT] [--preset PRESET] [--speaker-id SPEAKER_ID] input output
+
+positional arguments:
+  input                     Input text file to synthesize.
+  output                    Output .wav file path.
+
+optional arguments:
+  -h, --help                show this help message and exit
+  --checkpoint CHECKPOINT   The checkpoint (model file) to load.
+  --preset PRESET           Model preset file.
+  --speaker-id SPEAKER_ID   The ID of the speaker to use for synthesis.
 ```

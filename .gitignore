@@ -3,3 +3,6 @@ config.json
 server.wsgi
 *.pth
 __pycache__/
+tts_preprocess_et/
+TransformerTTS
+*.iml
