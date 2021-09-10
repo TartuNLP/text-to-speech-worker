@@ -22,7 +22,7 @@ Logs are stored in `/app/logs/` and logging configuration is loaded from `/app/c
 configuration from `/app/config/config.yaml` files.
 
 The RabbitMQ connection parameters are set with environment variables, exchange and queue names are dependent on the 
-`service` and `routing_key` values in `config.yaml`. The setup can be tested with the following sample
+`service` and `routing_key` (speaker name) values in `config.yaml`. The setup can be tested with the following sample
 `docker-compose.yml` configuration where `MODEL_NAME` matches the model name in your config file. One worker should 
 be added for each model.
 
