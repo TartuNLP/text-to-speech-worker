@@ -6,3 +6,5 @@ config/*.env
 .github
 /logs/*
 *.iml
+tts_preprocess_et/
+TransformerTTS

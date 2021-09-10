@@ -3,3 +3,5 @@
 __pycache__/
 config/.env
 *.iml
+tts_preprocess_et/
+TransformerTTS
