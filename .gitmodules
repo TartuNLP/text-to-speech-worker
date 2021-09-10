@@ -1,6 +1,6 @@
 [submodule "TransformerTTS"]
 	path = TransformerTTS
-	url = git@github.com:TartuNLP/TransformerTTS.git
+	url = https://github.com/TartuNLP/TransformerTTS.git
 [submodule "tts_preprocess_et"]
 	path = tts_preprocess_et
-	url = git@github.com:TartuNLP/tts_preprocess_et.git
+	url = https://github.com/TartuNLP/tts_preprocess_et.git
