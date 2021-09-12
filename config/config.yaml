@@ -9,7 +9,7 @@ tts_config: 'TransformerTTS/config/tts_config_est.yaml'
 data_name: ''
 
 service: tts
-models:
+workers:
   albert:
     parameters:
       config_path: config/config.yaml

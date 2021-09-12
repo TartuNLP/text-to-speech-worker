@@ -23,7 +23,7 @@ configuration from `/app/config/config.yaml` files.
 
 The RabbitMQ connection parameters are set with environment variables, exchange and queue names are dependent on the 
 `service` and `routing_key` (speaker name) values in `config.yaml`. The setup can be tested with the following sample
-`docker-compose.yml` configuration where `MODEL_NAME` matches the model name in your config file. One worker should 
+`docker-compose.yml` configuration where `WORKER_NAME` matches the worker name in your config file. One worker should 
 be added for each model.
 
 ```
@@ -49,7 +49,7 @@ services:
   tts_worker_mari:
     image: ghcr.io/tartunlp/text-to-speech-worker:latest
     environment:
-      - MODEL_NAME=mari
+      - WORKER_NAME=mari
       - MQ_HOST=rabbitmq
       - MQ_PORT=5672
       - MQ_USERNAME=${RABBITMQ_USER}
@@ -87,7 +87,7 @@ python -c 'import nltk; nltk.download("punkt"); nltk.download("cmudict")'
 - Specify RabbitMQ connection parameters with environment variables or in a `config/.env` file as illustrated in the 
   `config/sample.env`.
 
-Run the worker with where `MODEL_NAME` matches the model name in your config file:
+Run the worker with where `WORKER_NAME` matches the model name in your config file:
 ```
-python tts_worker.py --log-config config/logging.ini --worker-config config/config.yaml --model $MODEL_NAME
+python tts_worker.py --log-config config/logging.ini --config config/config.yaml --worker $WORKER_NAME
 ```

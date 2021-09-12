@@ -8,7 +8,7 @@ WORKDIR /app
 VOLUME /app/models
 COPY . .
 
-ENV MODEL_NAME=""
-RUN echo "python tts_worker.py --model \$MODEL_NAME" > entrypoint.sh
+ENV WORKER_NAME=""
+RUN echo "python tts_worker.py --worker \$WORKER_NAME" > entrypoint.sh
 
 ENTRYPOINT ["bash", "entrypoint.sh"]
