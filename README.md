@@ -87,5 +87,5 @@ python -c 'import nltk; nltk.download("punkt"); nltk.download("cmudict")'
 
 Run the worker with:
 ```
-python tts_worker.py --log-config config/logging.ini --worker-config config/config.yaml
+python tts_worker.py --log-config config/logging.ini --config config/config.yaml
 ```
