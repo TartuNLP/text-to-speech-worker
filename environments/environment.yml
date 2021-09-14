@@ -1,6 +1,5 @@
 channels:
   - conda-forge
-  - pypi
   - estnltk
   - pytorch
 dependencies:
@@ -13,7 +12,7 @@ dependencies:
   - pysoundfile
   - scipy
   - nltk
-  - estnltk=1.6.7b
+  - estnltk==1.6.9b
   - python-dotenv==0.15.0
   - marshmallow==3.10.0
   - pytorch==1.4.0
