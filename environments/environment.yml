@@ -1,0 +1,24 @@
+name: transformer-tts
+channels:
+  - conda-forge
+  - estnltk
+  - pytorch
+dependencies:
+  - python==3.7.10
+  - matplotlib==3.2.2
+  - librosa==0.7.1
+  - numpy==1.17.4
+  - ruamel.yaml==0.16.6
+  - tensorflow=2.2.0
+  - pysoundfile
+  - scipy
+  - nltk
+  - estnltk==1.6.9b
+  - pytorch==1.4.0
+  - torchvision==0.5.0
+  - pyyaml>=5.4.1
+  - pip
+  - pip:
+      - webrtcvad
+      - pyworld
+      - phonemizer==2.2.1

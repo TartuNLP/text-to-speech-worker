@@ -1,10 +1,6 @@
 # Estonian Text-to-Speech
 
-Scripts for Estonian multispeaker speech synthesis from text file input. This repository contains the following
-submodules:
-
-- [Deep Voice 3 adaptation for Estonian](https://github.com/TartuNLP/deepvoice3_pytorch)
-- [Estonian text-to-speech preprocessing scripts](https://github.com/TartuNLP/tts_preprocess_et)
+Scripts for Estonian multispeaker speech synthesis from text file input.
 
 Speech synthesis was developed in collaboration with the [Estonian Language Institute](http://portaal.eki.ee/).
 
@@ -31,14 +27,13 @@ git clone --recurse-submodules https://koodivaramu.eesti.ee/tartunlp/text-to-spe
 
 ```
 cd text-to-speech
-conda env create -f environment.yml
-conda activate deepvoice
-pip install --no-deps -e "deepvoice3_pytorch/[bin]"
-python -c 'import nltk; nltk.download("punkt"); nltk.download("cmudict")'
+conda env create -f environments/environment.yml
+conda activate transformer-tts
+python -c 'import nltk; nltk.download("punkt")'
 ```
 
-- Download our [Deep Voice 3 model](https://github.com/TartuNLP/deepvoice3_pytorch/releases/kratt-v1.2) and place it
-  inside the `models/` directory. The model we reference to in this version supports six different speakers.
+- Download our [TransformerTTS models](https://github.com/TartuNLP/text-to-speech-worker/releases/tag/v2.0.0) and 
+  place them inside the `models/` directory.
 
 ## Usage
 
@@ -46,13 +41,13 @@ A file can be syntesized with the following command. Currently, only plain text 
 audio is saved in `.wav` format.
 
 ```
-python synthesizer.py test.txt test.wav
+python synthesizer.py --speaker albert test.txt test.wav
 ```
 
 More info about script usage can be found with the `--help` flag:
 
 ```
-synthesizer.py [-h] [--checkpoint CHECKPOINT] [--preset PRESET] [--speaker-id SPEAKER_ID] input output
+synthesizer.py [-h] [--speaker SPEAKER] [--speed SPEED] [--config CONFIG] input output
 
 positional arguments:
   input                     Input text file to synthesize.
@@ -60,7 +55,7 @@ positional arguments:
 
 optional arguments:
   -h, --help                show this help message and exit
-  --checkpoint CHECKPOINT   The checkpoint (model file) to load.
-  --preset PRESET           Model preset file.
-  --speaker-id SPEAKER_ID   The ID of the speaker to use for synthesis.
+  --speaker SPEAKER         The name of the speaker to use for synthesis.
+  --speed SPEED             Output speed multiplier.
+  --config CONFIG           The config file to load.
 ```

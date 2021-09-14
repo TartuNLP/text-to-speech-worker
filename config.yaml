@@ -1,0 +1,35 @@
+### Transformer-TTS requried configuration
+wav_directory: ''
+metadata_path: ''
+log_directory: ''
+train_data_directory: ''
+data_config: 'TransformerTTS/config/data_config_est.yaml'
+aligner_config: 'TransformerTTS/config/aligner_config.yaml'
+tts_config: 'TransformerTTS/config/tts_config_est.yaml'
+data_name: ''
+
+speakers:
+  albert:
+    config_path: config.yaml
+    checkpoint_path: models/tts/albert
+    vocoder_path: models/hifigan/vctk
+  kalev:
+    config_path: config.yaml
+    checkpoint_path: models/tts/kalev
+    vocoder_path: models/hifigan/vctk
+  kylli:
+    config_path: config.yaml
+    checkpoint_path: models/tts/kylli
+    vocoder_path: models/hifigan/ljspeech
+  mari:
+    config_path: config.yaml
+    checkpoint_path: models/tts/mari
+    vocoder_path: models/hifigan/ljspeech
+  meelis:
+    config_path: config.yaml
+    checkpoint_path: models/tts/meelis
+    vocoder_path: models/hifigan/vctk
+  vesta:
+    config_path: config.yaml
+    checkpoint_path: models/tts/vesta
+    vocoder_path: models/hifigan/vctk
