@@ -39,13 +39,13 @@ Tekstifaili saab sünteesida järgmise käsuga. Hetkel oskab skript lugeda vaid 
 väljundi `.wav` formaadis.
 
 ```
-python file_synthesis.py test.txt test.wav
+python synthesizer.py test.txt test.wav
 ```
 
 Lisainfot skripti kasutamise kohta saab `--help` parameetriga:
 
 ```
-file_synthesis.py [-h] [--checkpoint CHECKPOINT] [--preset PRESET] [--speaker-id SPEAKER_ID] input output
+synthesizer.py [-h] [--checkpoint CHECKPOINT] [--preset PRESET] [--speaker-id SPEAKER_ID] input output
 
 positional arguments:
   input                     Input text file to synthesize.

@@ -1,4 +1,5 @@
 # coding: utf-8
+import os
 import re
 import numpy as np
 import torch
@@ -10,6 +11,8 @@ from train import build_model
 import audio
 import train
 from nltk import sent_tokenize
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
 class Synthesizer:
@@ -37,7 +40,7 @@ class Synthesizer:
             checkpoint = torch.load(checkpoint_path, map_location=torch.device('cpu'))
         self.model.load_state_dict(checkpoint["state_dict"])
 
-        self.model.seq2seq.decoder.max_decoder_steps = hparams.max_positions-2
+        self.model.seq2seq.decoder.max_decoder_steps = hparams.max_positions - 2
 
         self.model = self.model.to(self.device)
         self.model.eval()
@@ -93,3 +96,28 @@ class Synthesizer:
         waveform = np.concatenate(waveforms)
 
         return waveform
+
+
+if __name__ == '__main__':
+    from argparse import ArgumentParser, FileType
+
+    parser = ArgumentParser()
+    parser.add_argument('input', type=FileType('r'),
+                        help="Input text file to synthesize.")
+    parser.add_argument('output', type=FileType('w'),
+                        help="Output .wav file path.")
+    parser.add_argument('--checkpoint', type=FileType('r'), default='models/checkpoint.pth',
+                        help="The checkpoint (model file) to load.")
+    parser.add_argument('--preset', type=FileType('r'), default='deepvoice3_pytorch/presets/eesti_konekorpus.json',
+                        help="Model preset file.")
+    parser.add_argument('--speaker-id', type=int, default=0,
+                        help="The ID of the speaker to use for synthesis.")
+    args = parser.parse_known_args()[0]
+
+    synthesizer = Synthesizer(args.preset.name, args.checkpoint.name)
+
+    with open(args.input.name, 'r', encoding='utf-8') as f:
+        text = f.read()
+
+    waveform = synthesizer.synthesize(text, args.speaker_id)
+    audio.save_wav(waveform, args.output.name)

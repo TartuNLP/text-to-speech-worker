@@ -46,13 +46,13 @@ A file can be syntesized with the following command. Currently, only plain text 
 audio is saved in `.wav` format.
 
 ```
-python file_synthesis.py test.txt test.wav
+python synthesizer.py test.txt test.wav
 ```
 
 More info about script usage can be found with the `--help` flag:
 
 ```
-file_synthesis.py [-h] [--checkpoint CHECKPOINT] [--preset PRESET] [--speaker-id SPEAKER_ID] input output
+synthesizer.py [-h] [--checkpoint CHECKPOINT] [--preset PRESET] [--speaker-id SPEAKER_ID] input output
 
 positional arguments:
   input                     Input text file to synthesize.
