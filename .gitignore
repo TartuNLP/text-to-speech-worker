@@ -3,3 +3,4 @@ __pycache__/
 config/.env
 *.iml
 deepvoice3_pytorch/
+config/config.*.yaml

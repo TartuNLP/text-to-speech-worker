@@ -7,3 +7,4 @@ config/*.env
 /logs/*
 *.iml
 deepvoice3_pytorch/
+environment.yml

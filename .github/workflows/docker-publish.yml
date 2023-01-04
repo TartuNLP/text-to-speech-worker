@@ -51,8 +51,6 @@ jobs:
             latest=${{ !github.event.release.prerelease }}
           tags: |
             type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}
 
       - name: Set up Docker Buildx
