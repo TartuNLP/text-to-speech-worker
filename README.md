@@ -145,5 +145,5 @@ The following steps have been tested on Ubuntu and is both CPU and GPU compatibl
 Run the worker with where `MODEL_NAME` matches the model name in your config file:
 
 ```commandline
-python tts_worker.py --model-name $MODEL_NAME --log-config config/logging.ini --config config/config.yaml
+python main.py --model-name $MODEL_NAME [--log-config config/logging.ini --config config/config.yaml]
 ```
