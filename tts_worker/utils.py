@@ -52,6 +52,8 @@ def split_sentence(sent, max_len):
 
     while len(sent) > max_len:
         i = sent[:max_len].rfind(' ')
+        if i == -1:
+            i = max_len
         sub_sents.append(sent[:i])
         sent = sent[i:]
     sub_sents.append(sent)

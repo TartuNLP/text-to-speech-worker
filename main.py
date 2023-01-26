@@ -14,6 +14,12 @@ def parse_args():
                         help="The model to load. Refers to the model name in the config file.")
     parser.add_argument('--log-config', type=FileType('r'), default='config/logging.prod.ini',
                         help="Path to log config file.")
+    parser.add_argument('--max-input-length', type=int, default=0,
+                        help="Optional max input length configuration - "
+                             "the maximum number of characters that the model will ever try to synthesize in one go. "
+                             "If not set, some limit will be calculated automatically during start-up and "
+                             "any failed sentences are automatically retried in smaller chunks. The limit is specific "
+                             "to hardware.")
 
     return parser.parse_args()
 
@@ -23,7 +29,7 @@ def main():
     logging.config.fileConfig(args.log_config.name)
     model_config = read_model_config(args.model_config.name, args.model_name)
 
-    tts = Synthesizer(model_config)
+    tts = Synthesizer(model_config, args.max_input_length)
     consumer = MQConsumer(tts)
     consumer.start()
 
