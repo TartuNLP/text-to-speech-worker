@@ -1,3 +1,4 @@
+from unidecode import unidecode
 import re
 import logging
 from typing import List
@@ -7,20 +8,25 @@ from tts_preprocess_et.convert import convert_sentence
 logger = logging.getLogger(__name__)
 
 # define and compile all the patterns
-PRE_REGEXES = (
+EST_PRE_REGEXPS = (
     (re.compile(r'[`´’\']'), ''),
     (re.compile(r'[()]'), ', ')
 )
 
-POST_REGEXES = (
+VRO_PRE_REGEXPS = {
+    (re.compile('y'), 'õ'),
+    (re.compile('([ǴḰĹḾŃṔŔŚǵḱĺḿńṕŕśǘ])'), r'\g<1>\'')
+}
+
+
+POST_REGEXPS = (
     (re.compile(r'[()[\]:;−­–…—]'), ', '),
     (re.compile(r'[«»“„”]'), '"'),
     (re.compile(r'[*\'\\/-]'), ' '),
-    (re.compile(r'[`´’\']'), ''),
+    (re.compile(r'[`´’]'), "'"),
     (re.compile(r' +([.,!?])'), r'\g<1>'),
     (re.compile(r', ?([.,?!])'), r'\g<1>'),
-    (re.compile(r'\.+'), ''),
-
+    (re.compile(r'\.+'), '.'),
     (re.compile(r' +'), ' '),
     (re.compile(r'^ | $'), ''),
     (re.compile(r'^, ?'), ''),
@@ -29,16 +35,22 @@ POST_REGEXES = (
 
 
 def clean(sent: str, alphabet: List[str], frontend: str = 'est'):
-    for regex, sub in PRE_REGEXES:
-        sent = regex.sub(sub, sent)
-
     if frontend == 'est':
+        for regex, sub in EST_PRE_REGEXPS:
+            sent = regex.sub(sub, sent)
+
         try:
             sent = convert_sentence(sent)
         except Exception as ex:
             logger.error(str(ex), sent)
 
-    for regex, sub in POST_REGEXES:
+    elif frontend == "vro":
+        for regex, sub in VRO_PRE_REGEXPS:
+            sent = regex.sub(sub, sent)
+
+        sent = unidecode(sent)
+
+    for regex, sub in POST_REGEXPS:
         sent = regex.sub(sub, sent)
 
     sent = sent.lower()

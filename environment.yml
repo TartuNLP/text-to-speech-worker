@@ -19,6 +19,7 @@ dependencies:
   - pydantic==1.10.2
   - python-dotenv==0.21.0
   - ruamel.yaml==0.17.21
+  - unidecode
   - pip
   - pip:
       - phonemizer==2.2.1
