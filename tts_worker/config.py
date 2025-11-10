@@ -2,7 +2,8 @@ import yaml
 from yaml.loader import SafeLoader
 from typing import Dict
 
-from pydantic import BaseSettings, BaseModel
+from pydantic import BaseModel
+from pydantic_settings import BaseSettings
 
 
 class TFConfig(BaseSettings):
@@ -25,23 +26,18 @@ class MQConfig(BaseSettings):
     exchange: str = 'text-to-speech'
     heartbeat: int = 60
     connection_name: str = 'TTS worker'
+    x_priority: int = 0
+    x_expires: int = 60000
 
     class Config:
         env_file = 'config/.env'
         env_prefix = 'mq_'
 
-
-class Speaker(BaseModel):
-    speaker_id: int
-    vocoder: str
-
-
 class ModelConfig(BaseModel):
     model_name: str
     model_path: str
     frontend: str
-    speakers: Dict[str, Speaker]
-    vocoders: Dict[str, str]  # name; vocoder path pairs
+    speakers: Dict[str, int] # name, id
 
 
 def read_model_config(file_path: str, model_name: str) -> ModelConfig:
@@ -49,7 +45,6 @@ def read_model_config(file_path: str, model_name: str) -> ModelConfig:
         config = yaml.load(f, Loader=SafeLoader)
         model_config = ModelConfig(
             model_name=model_name,
-            vocoders=config['vocoders'],
             **config['tts_models'][model_name]
         )
 

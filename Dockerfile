@@ -1,4 +1,5 @@
-FROM python:3.9
+# Latest version of TensorFlow is compatible with Python <= 3.12
+FROM python:3.10
 
 # Install system dependencies
 RUN apt-get update && \
@@ -26,4 +27,4 @@ RUN pip install --user -r requirements.txt && \
 
 COPY --chown=app:app . .
 
-ENTRYPOINT ["python", "main.py"]
+ENTRYPOINT ["python", "main.py", "--max-input-length", "500"]

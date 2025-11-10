@@ -1,9 +1,8 @@
-from unidecode import unidecode
 import re
 import logging
 from typing import List
 
-from tts_preprocess_et.convert import convert_sentence
+from tts_preprocess_et.convert import convert_sentence as et_convert
 
 logger = logging.getLogger(__name__)
 
@@ -13,16 +12,11 @@ EST_PRE_REGEXPS = (
     (re.compile(r'[()]'), ', ')
 )
 
-VRO_PRE_REGEXPS = {
-    (re.compile('y'), 'õ'),
-    (re.compile('([ǴḰĹḾŃṔŔŚǵḱĺḿńṕŕśǘ])'), r'\g<1>\'')
-}
-
 
 POST_REGEXPS = (
     (re.compile(r'[()[\]:;−­–…—]'), ', '),
     (re.compile(r'[«»“„”]'), '"'),
-    (re.compile(r'[*\'\\/-]'), ' '),
+    (re.compile(r'[*\\/-]'), ' '),
     (re.compile(r'[`´’]'), "'"),
     (re.compile(r' +([.,!?])'), r'\g<1>'),
     (re.compile(r', ?([.,?!])'), r'\g<1>'),
@@ -40,21 +34,19 @@ def clean(sent: str, alphabet: List[str], frontend: str = 'est'):
             sent = regex.sub(sub, sent)
 
         try:
-            sent = convert_sentence(sent)
+            sent = et_convert(sent)
         except Exception as ex:
             logger.error(str(ex), sent)
 
     elif frontend == "vro":
-        for regex, sub in VRO_PRE_REGEXPS:
-            sent = regex.sub(sub, sent)
-
-        sent = unidecode(sent)
+        # TODO: integrate smugri frontend
+        sent = sent.replace("y", "õ")
 
     for regex, sub in POST_REGEXPS:
         sent = regex.sub(sub, sent)
 
     sent = sent.lower()
-    sent = ''.join([char for char in sent if char in alphabet])  # TODO
+    sent = ''.join([char for char in sent if char in alphabet])
     sent = ' '.join(sent.split())
     return sent
 

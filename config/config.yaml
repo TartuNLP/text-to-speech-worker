@@ -1,46 +1,21 @@
-vocoders:
-  vctk: models/hifigan/vctk # the directory which should contain a .json and .pt file
-  ljspeech: models/hifigan/ljspeech
 tts_models:
   multispeaker:
-    model_path: models/tts/multispeaker # the directory that contains a yaml and hdf5 files for the model
+    model_path: models/multispeaker # the directory that contains a yaml and hdf5 files for the model
     frontend: 'est'
-    speakers: # a mapping of speaker names (as they will be used in routing keys, speaker-ids in the model and the vocoder to be used)
-      albert:
-        speaker_id: 1
-        vocoder: vctk
-      indrek:
-        speaker_id: 2
-        vocoder: vctk
-      kalev:
-        speaker_id: 3
-        vocoder: vctk
-      kylli:
-        speaker_id: 4
-        vocoder: ljspeech
-      liivika:
-        speaker_id: 5
-        vocoder: ljspeech
-      mari:
-        speaker_id: 6
-        vocoder: ljspeech
-      meelis:
-        speaker_id: 7
-        vocoder: vctk
-      peeter:
-        speaker_id: 8
-        vocoder: vctk
-      tambet:
-        speaker_id: 9
-        vocoder: vctk
-      vesta:
-        speaker_id: 10
-        vocoder: vctk
+    speakers: # a mapping of speaker names as they will be used in routing keys and speaker-ids in the model
+      albert: 1
+      indrek: 2
+      kalev: 3
+      kylli: 4
+      liivika: 5
+      mari: 6
+      meelis: 7
+      peeter: 8
+      tambet: 9
+      vesta: 10
   # single-speaker example:
   #  mari:
-  #    model_path: models/tts/mari
+  #    model_path: models/mari
   #    frontend: 'est'
   #    speakers:
-  #      lee:
-  #        speaker_id: 0
-  #        vocoder: ljspeech
+  #      mari: 0

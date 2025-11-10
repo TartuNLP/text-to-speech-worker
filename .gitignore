@@ -4,3 +4,7 @@ config/.env
 *.iml
 deepvoice3_pytorch/
 config/config.*.yaml
+.ipynb_checkpoints
+.DS_Store
+.vscode/
+*.ipynb

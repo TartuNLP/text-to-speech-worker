@@ -16,8 +16,6 @@ from tts_worker.config import mq_config
 
 logger = logging.getLogger(__name__)
 
-X_EXPIRES = 60000
-
 
 class MQConsumer:
     def __init__(self, tts_worker: Synthesizer):
@@ -84,7 +82,7 @@ class MQConsumer:
         ))
         self.channel = connection.channel()
         self.channel.queue_declare(queue=self.queue_name, arguments={
-            'x-expires': X_EXPIRES
+            'x-expires': mq_config.x_expires,
         })
         self.channel.exchange_declare(exchange=mq_config.exchange, exchange_type='direct')
 
@@ -93,7 +91,9 @@ class MQConsumer:
                                     routing_key=route)
 
         self.channel.basic_qos(prefetch_count=1)
-        self.channel.basic_consume(queue=self.queue_name, on_message_callback=self._on_request)
+        self.channel.basic_consume(queue=self.queue_name, on_message_callback=self._on_request, arguments={
+            'x-priority': mq_config.x_priority
+        })
 
     @staticmethod
     def _respond(channel: pika.adapters.blocking_connection.BlockingChannel, method: pika.spec.Basic.Deliver,

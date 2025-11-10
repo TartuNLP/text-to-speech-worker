@@ -8,3 +8,5 @@ config/*.env
 *.iml
 deepvoice3_pytorch/
 environment.yml
+*.ipynb
+.ipynb_checkpoints

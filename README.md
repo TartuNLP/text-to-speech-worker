@@ -17,17 +17,9 @@ structure:
 
 ```
 models
-├── hifigan
-│   ├── ljspeech
-│   │   ├── config.json
-│   │   └── model.pt
-│   ├── vctk
-│   │   ├── config.json
-│   │   └── model.pt
-└── tts
-    └── multispeaker
-        ├── config.yaml
-        └── model_weights.hdf5
+└── multispeaker
+    ├── config.yaml
+    └── model_weights.hdf5
 ```
 
 ## Setup
@@ -52,8 +44,7 @@ The following environment variables should be configured when running the contai
 - `MKL_NUM_THREADS` (optional) - number of threads used for intra-op parallelism by PyTorch (used for the vocoder model)
   . `16` by default. If set to a blank value, it defaults to the number of CPU cores which may cause computational
   overhead when deployed on larger nodes. Alternatively, the `docker run` flag `--cpuset-cpus` can be used to control
-  this. For more details, refer to the [performance and hardware requirements](#performance-and-hardware-requirements)
-  section below.
+  this.
 
 By default, the container entrypoint is `main.py` without additional arguments, but arguments should be defined with the
 `COMMAND` option. The only required flag is `--model-name` to select which model is loaded by the worker. The full list
@@ -77,7 +68,6 @@ optional arguments:
 The setup can be tested with the following sample `docker-compose.yml` configuration:
 
 ```yaml
-version: '3'
 services:
   rabbitmq:
     image: 'rabbitmq'
@@ -95,6 +85,7 @@ services:
       - '8000:8000'
     depends_on:
       - rabbitmq
+    restart: always
   tts_worker:
     image: ghcr.io/tartunlp/text-to-speech-worker:latest
     environment:
@@ -107,6 +98,7 @@ services:
       - ./models:/app/models
     depends_on:
       - rabbitmq
+    restart: always
 ```
 
 ### Manual setup
@@ -116,22 +108,11 @@ The following steps have been tested on Ubuntu and is both CPU and GPU compatibl
 - Clone this repository with submodules
 - Install prerequisites:
     - GNU Compiler Collection (`sudo apt install build-essential`)
-    - For a **CPU** installation we recommend using the included `requirements.txt` file in a clean environment (tested with
-      Python 3.9)
+    - For a **GPU** installation, make sure you have CUDA installed (see https://developer.nvidia.com/cuda-downloads)
+    - Use the included `requirements.txt` file in a clean environment (check the compatible python version from the `Dockerfile`)
       ```commandline
       pip install -r requirements.txt
       ```
-
-    - For a **GPU** installation, use the `environment.yml` file instead.
-        - Make sure you have the following prerequisites installed:
-            - CUDA (see https://developer.nvidia.com/cuda-downloads)
-            - Conda (see https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html)
-
-        - Then create and activate a Conda environment with all dependencies:
-          ```commandline
-          conda env create -f environment.yml -n tts
-          conda activate tts
-          ```
 
 - Download the models from the [releases section](https://github.com/TartuNLP/text-to-speech-worker/releases) and
   place inside the `models/` directory.
