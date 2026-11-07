@@ -1,6 +1,5 @@
 import base64
 import json
-from typing import List, Optional, Union
 
 from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
@@ -15,20 +14,20 @@ class Request(BaseModel):
 
 @dataclass
 class ResponseContent:
-    audio: Union[bytes, str]
+    audio: bytes | str
     text: str
     normalized_text: str
-    duration_frames: Optional[List[int]] = None
-    sampling_rate: Optional[int] = None
-    win_length: Optional[int] = None
-    hop_length: Optional[int] = None
+    duration_frames: list[int] | None = None
+    sampling_rate: int | None = None
+    win_length: int | None = None
+    hop_length: int | None = None
 
 
 @dataclass
 class Response:
     status_code: int = 200
-    status: Optional[str] = None
-    content: Optional[ResponseContent] = None
+    status: str | None = None
+    content: ResponseContent | None = None
 
     def __post_init__(self):
         if self.status_code == 200 and self.content is None:

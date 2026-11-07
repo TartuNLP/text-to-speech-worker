@@ -1,28 +1,38 @@
-import yaml
-from yaml.loader import SafeLoader
-from typing import Dict
+import os
 
+import yaml
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings
+from yaml.loader import SafeLoader
 
 
-class TFConfig(BaseSettings):
+class TTSConfig(BaseSettings):
+    """
+    Imports TTS worker configuration from environment variables
+    - TF_VRAM_LIMIT: int - Limit for TensorFlow GPU memory usage in MB.
+    - TTS_MAX_INPUT_LENGTH: int - Maximum number of characters that the model will try to synthesize in one go. 
+    If not set (value is 0), the model's maximum input length is used and any failed sentences are automatically retried in smaller chunks.
+    The limit is specific to hardware and VRAM availability/limits.
+    - SPEECHBRAIN_HIFIGAN_MODEL: str - Huggingface model name for Speechbrain HiFi-GAN vocoder.
+    """
     CPP_MIN_LOG_LEVEL: int = 2
-    VRAM_LIMIT: int = 1600
+    TF_VRAM_LIMIT: int = 8000
+    TTS_MAX_INPUT_LENGTH: int = 0
+    SPEECHBRAIN_HIFIGAN_MODEL: str = "speechbrain/tts-hifigan-libritts-22050Hz"
 
-    class Config:
-        env_file = 'config/.env'
-        env_prefix = 'TF_'
+    def __init__(self, **values):
+        super().__init__(**values)
+        os.environ.setdefault('TF_CPP_MIN_LOG_LEVEL', str(self.CPP_MIN_LOG_LEVEL))
 
 
 class MQConfig(BaseSettings):
     """
     Imports MQ configuration from environment variables
     """
-    host: str = 'localhost'
-    port: int = 5672
     username: str = 'guest'
     password: str = 'guest'
+    host: str = 'localhost'
+    port: int = 5672
     exchange: str = 'text-to-speech'
     heartbeat: int = 60
     connection_name: str = 'TTS worker'
@@ -30,14 +40,14 @@ class MQConfig(BaseSettings):
     x_expires: int = 60000
 
     class Config:
-        env_file = 'config/.env'
         env_prefix = 'mq_'
+
 
 class ModelConfig(BaseModel):
     model_name: str
     model_path: str
     frontend: str
-    speakers: Dict[str, int] # name, id
+    speakers: dict[str, int] # name, id
 
 
 def read_model_config(file_path: str, model_name: str) -> ModelConfig:
@@ -51,5 +61,5 @@ def read_model_config(file_path: str, model_name: str) -> ModelConfig:
     return model_config
 
 
-tf_config = TFConfig()
+tts_config = TTSConfig()
 mq_config = MQConfig()

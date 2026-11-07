@@ -1,7 +1,7 @@
 tts_models:
   multispeaker:
     model_path: models/multispeaker # the directory that contains a yaml and hdf5 files for the model
-    frontend: 'est'
+    frontend: 'est' # the language of the model, used to select the correct text preprocessing pipeline
     speakers: # a mapping of speaker names as they will be used in routing keys and speaker-ids in the model
       albert: 1
       indrek: 2

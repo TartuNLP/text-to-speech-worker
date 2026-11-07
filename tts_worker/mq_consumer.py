@@ -1,18 +1,17 @@
+import hashlib
 import json
 import logging
-import hashlib
 from sys import getsizeof
-from time import time, sleep
-
-from pydantic import ValidationError
+from time import sleep, time
 
 import pika
 import pika.exceptions
-from pika import credentials, BlockingConnection, ConnectionParameters
+from pika import BlockingConnection, ConnectionParameters, credentials
+from pydantic import ValidationError
 
-from tts_worker.schemas import Response, Request
-from tts_worker.synthesizer import Synthesizer
 from tts_worker.config import mq_config
+from tts_worker.schemas import Request, Response
+from tts_worker.synthesizer import Synthesizer
 
 logger = logging.getLogger(__name__)
 
@@ -24,16 +23,8 @@ class MQConsumer:
         them.
         """
         self.tts_worker = tts_worker
-        self.routing_keys = []
-        self.queue_name = None
         self.channel = None
 
-        self._generate_queue_config()
-
-    def _generate_queue_config(self):
-        """
-        Produce routing keys with the following format: exchange_name.speaker_name
-        """
         routing_keys = []
         for speaker in self.tts_worker.speakers:
             key = f'{mq_config.exchange}.{speaker}'
@@ -96,8 +87,7 @@ class MQConsumer:
         })
 
     @staticmethod
-    def _respond(channel: pika.adapters.blocking_connection.BlockingChannel, method: pika.spec.Basic.Deliver,
-                 properties: pika.BasicProperties, response: Response):
+    def _respond(channel, method, properties, response: Response):
         """
         Publish the response to the callback queue and acknowledge the original queue item.
         """
@@ -111,8 +101,7 @@ class MQConsumer:
 
         channel.basic_ack(delivery_tag=method.delivery_tag)
 
-    def _on_request(self, channel: pika.adapters.blocking_connection.BlockingChannel, method: pika.spec.Basic.Deliver,
-                    properties: pika.BasicProperties, body: bytes):
+    def _on_request(self, channel, method, properties, body: bytes):
         """
         Pass the request to the worker and return its response.
         """
@@ -123,12 +112,11 @@ class MQConsumer:
             request = Request(**request)
             response = self.tts_worker.process_request(request)
         except ValidationError as error:
-            response = Response(status=f'Error parsing input: {str(error)}', status_code=422)
-        except Exception as e:
-            logger.exception(f'Unexpected error: {e}')
+            response = Response(status=f'Error parsing input: {error!s}', status_code=422)
+        except Exception:
+            logger.exception('Unexpected error')
             response = Response(status_code=500, status="Unknown internal error.")
 
-        response = response
         response_size = getsizeof(response)
 
         self._respond(channel, method, properties, response)

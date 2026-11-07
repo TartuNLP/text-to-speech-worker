@@ -1,8 +1,8 @@
-import re
 import logging
-from typing import List
+import re
 
 from tts_preprocess_et.convert import convert_sentence as et_convert
+from tts_preprocess_smugri.convert import convert_sentence as smugri_convert
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +28,7 @@ POST_REGEXPS = (
 )
 
 
-def clean(sent: str, alphabet: List[str], frontend: str = 'est'):
+def clean(sent: str, alphabet: list[str], frontend: str = 'est'):
     if frontend == 'est':
         for regex, sub in EST_PRE_REGEXPS:
             sent = regex.sub(sub, sent)
@@ -38,9 +38,10 @@ def clean(sent: str, alphabet: List[str], frontend: str = 'est'):
         except Exception as ex:
             logger.error(str(ex), sent)
 
-    elif frontend == "vro":
-        # TODO: integrate smugri frontend
-        sent = sent.replace("y", "õ")
+    else:
+        if frontend == "vro":
+            sent = sent.replace("y", "õ")
+        sent = smugri_convert(sent, frontend)
 
     for regex, sub in POST_REGEXPS:
         sent = regex.sub(sub, sent)

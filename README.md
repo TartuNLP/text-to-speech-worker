@@ -1,9 +1,8 @@
 # Estonian Text-to-Speech
 
-This repository contains Estonian multi-speaker neural text-to-speech synthesis workers that process requests from
-RabbitMQ.
+This repository contains multi-speaker neural text-to-speech synthesis workers for Estonian and other Finno-Ugric languages that process requests from RabbitMQ.
 
-The project is developed by the [NLP research group](https://tartunlp.ai) at the [University of Tartu](https://ut.ee).
+The project is developed by the [NLP research group](https://tartunlp.ai) at the [University of Tartu Institute of Computer Science](https://cs.ut.ee).
 Speech synthesis can also be tested in our [demo](https://www.neurokone.ee/).
 
 ## Models
@@ -15,7 +14,7 @@ be used. We advise always using the latest available version to ensure best mode
 The model configuration files included in `config/config.yaml` correspond to the following `models/` directory
 structure:
 
-```
+```text
 models
 └── multispeaker
     ├── config.yaml
@@ -32,25 +31,26 @@ Logging configuration is loaded from `/app/config/logging.prod.ini` and service 
 `/app/config/config.yaml` file. The included config is commented to illustrate how new model configurations could be
 added.
 
-The following environment variables should be configured when running the container:
+Additionally, several environment variables are used to configure the RabbitMQ connection and worker behavior. The behavior of these
+variables is defined in `tts_worker/config.py`, however, the most important ones are listed below:
 
 - `MQ_USERNAME` - RabbitMQ username
 - `MQ_PASSWORD` - RabbitMQ user password
 - `MQ_HOST` - RabbitMQ host
 - `MQ_PORT` (optional) - RabbitMQ port (`5672` by default)
-- `MQ_EXCHANGE` (optional) - RabbitMQ exchange name (`text-to-speech` by default)
-- `MQ_HEARTBEAT` (optional) - heartbeat interval (`60` seconds by default)
-- `MQ_CONNECTION_NAME` (optional) - friendly connection name (`TTS worker` by default)
-- `MKL_NUM_THREADS` (optional) - number of threads used for intra-op parallelism by PyTorch (used for the vocoder model)
-  . `16` by default. If set to a blank value, it defaults to the number of CPU cores which may cause computational
-  overhead when deployed on larger nodes. Alternatively, the `docker run` flag `--cpuset-cpus` can be used to control
-  this.
+- `TTS_MAX_INPUT_LENGTH` (optional) - maximum input text length in characters (model's maximum input length by default). If the request contains longer sentences, text will be split into smaller chunks which are processed separately and concatenated in the end. May cause artifacts in
+  synthesis at chunk boundaries. Setting a limit which is too high may lead to out-of-memory errors.
+- `TF_VRAM_LIMIT` (optional) - TensorFlow VRAM limit in MB (`8000` by default). Set to `0` for dynamic VRAM allocation with no limit. Limits only VRAM usage by the TTS model. The vocoder model uses PyTorch and consumes additional VRAM dynamically.
+- `MKL_NUM_THREADS` (optional) - number of threads used for intra-op parallelism by PyTorch (used for the vocoder model).
+  Mostly relevant only when deployed on a CPU node. If unset, it defaults to the number of CPU
+  cores which may cause computational overhead when deployed on larger nodes. Alternatively, the `docker run`
+  flag `--cpuset-cpus` can be used to control this.
 
 By default, the container entrypoint is `main.py` without additional arguments, but arguments should be defined with the
 `COMMAND` option. The only required flag is `--model-name` to select which model is loaded by the worker. The full list
 of supported flags can be seen by running `python main.py -h`:
 
-```commandline
+```text
 usage: main.py [-h] [--model-config MODEL_CONFIG] [--model-name MODEL_NAME] [--log-config LOG_CONFIG]
 
 A text-to-speech worker that processes incoming TTS requests via RabbitMQ.
@@ -70,10 +70,16 @@ The setup can be tested with the following sample `docker-compose.yml` configura
 ```yaml
 services:
   rabbitmq:
-    image: 'rabbitmq'
+    image: rabbitmq:3-management
     environment:
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS}
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    restart: always
   tts_api:
     image: ghcr.io/tartunlp/text-to-speech-api:latest
     environment:
@@ -103,16 +109,17 @@ services:
 
 ### Manual setup
 
-The following steps have been tested on Ubuntu and is both CPU and GPU compatible (CUDA required).
+The following steps have been tested on Ubuntu and is both CPU and GPU compatible.
 
 - Clone this repository with submodules
 - Install prerequisites:
-    - GNU Compiler Collection (`sudo apt install build-essential`)
-    - For a **GPU** installation, make sure you have CUDA installed (see https://developer.nvidia.com/cuda-downloads)
-    - Use the included `requirements.txt` file in a clean environment (check the compatible python version from the `Dockerfile`)
-      ```commandline
-      pip install -r requirements.txt
-      ```
+  - GNU Compiler Collection (`sudo apt install build-essential`)
+  - For a **GPU** installation, make sure you have CUDA installed (see https://developer.nvidia.com/cuda-downloads)
+  - Use the included `requirements.txt` file in a clean environment (check the compatible python version from the `Dockerfile`)
+  
+    ```commandline
+    pip install -r requirements.txt
+    ```
 
 - Download the models from the [releases section](https://github.com/TartuNLP/text-to-speech-worker/releases) and
   place inside the `models/` directory.
@@ -120,11 +127,12 @@ The following steps have been tested on Ubuntu and is both CPU and GPU compatibl
 - Check the configuration files and change any defaults as needed. Make sure that the `model_path` parameter in
   `config/config.yaml` points to the model you just downloaded.
 
-- Specify RabbitMQ connection parameters with environment variables or in a `config/.env` file as illustrated in the
-  `config/sample.env`.
+- Specify RabbitMQ connection parameters with environment variables.
 
 Run the worker with where `MODEL_NAME` matches the model name in your config file:
 
 ```commandline
 python main.py --model-name $MODEL_NAME [--log-config config/logging.ini --config config/config.yaml]
 ```
+
+For more information about setup steps, check the included `Dockerfile`.

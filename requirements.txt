@@ -1,17 +1,18 @@
 # TransformerTTS requirements
 librosa==0.11.0
-tensorflow==2.13.0
+tensorflow==2.13.0 # cuda 11.8, python 3.8-3.11
 ruamel.yaml
 # Worker requirements:
-nltk==3.9.2
-pika==1.3.2
+nltk
+pika
 pydantic
 pydantic-settings
-python-dotenv
 # Preprocessing requirements:
-git+https://github.com/TartuNLP/tts_preprocess_et.git@v1.1.0
+git+https://github.com/TartuNLP/tts_preprocess_et.git@v1.1.1
+git+https://github.com/TartuNLP/tts_preprocess_smugri.git@54fa996
 # Vocoder requirements:
-speechbrain==1.0.2
+speechbrain==1.0.3
+huggingface-hub<1.0.0
+--extra-index-url https://download.pytorch.org/whl/cu118
 torch==2.1.2
-torchaudio==2.1.2
-huggingface-hub==0.29.2
+torchaudio
