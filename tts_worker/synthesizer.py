@@ -1,13 +1,15 @@
-import io
+import io  # noqa: I001
 import logging
 import re
 
 import numpy as np
+import torch  # must be imported before tensorflow: the reverse order segfaults on CUDA init
 import tensorflow as tf
-import torch
 from nltk import sent_tokenize
 from scipy.io import wavfile
 from speechbrain.inference.vocoders import HIFIGAN
+
+
 from tensorflow.python.framework.errors_impl import InvalidArgumentError
 
 from TransformerTTS.model.models import ForwardTransformer

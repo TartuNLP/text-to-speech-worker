@@ -17,16 +17,22 @@ ENV PYTHONIOENCODING=utf-8
 
 WORKDIR /app
 
-RUN adduser --disabled-password --gecos "app" app && \
+RUN adduser --uid 1000 --disabled-password --gecos "app" app && \
     chown -R app:app /app
-USER app
+USER 1000
 
 ENV PATH="/home/app/.local/bin:${PATH}"
 
 COPY --chown=app:app requirements.txt .
-RUN pip install -r requirements.txt && \
+RUN pip install --no-cache-dir -r requirements.txt && \
     rm requirements.txt
 
 COPY --chown=app:app . .
+
+# Include the default vocoder in the image so that it is not downloaded at startup
+RUN python3 -c "from speechbrain.inference.vocoders import HIFIGAN; from tts_worker.config import tts_config; HIFIGAN.from_hparams(source=tts_config.SPEECHBRAIN_HIFIGAN_MODEL)"
+
+# oneDNN mishandles the empty Conv1D input when building single-speaker models on CPU
+ENV TF_ENABLE_ONEDNN_OPTS=0
 
 ENTRYPOINT ["python3", "main.py"]

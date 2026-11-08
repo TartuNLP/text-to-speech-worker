@@ -1,5 +1,5 @@
 /models
-*.env
+**/*.env
 .idea/
 .git/
 .gitignore
@@ -10,3 +10,4 @@ deepvoice3_pytorch/
 environment.yml
 *.ipynb
 .ipynb_checkpoints
+env/
